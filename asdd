@@ -1,0 +1,68 @@
+    DateToday = Format(Now(), "yyyy-mm-dd")
+    CurrentYear = DatePart("yyyy", Date)
+    currentMonth = DatePart("m", Date)
+
+
+    Dim strBody As String
+    Dim signature As String
+    Dim OutApp As Object
+    Dim OutMail As Object
+    Dim emailRng As Range, Emails As Range
+    Dim Recipients As String
+    
+    Workbooks("").Worksheets("Email list").Activate
+    Set emailRng = Worksheets("Email list").Range("A2", Range("A2").End(xlDown))
+
+    For Each Emails In emailRng
+        Recipients = Recipients & ";" & Emails.Value
+    Next
+
+    Recipients = Mid(Recipients, 2)
+        Set OutApp = CreateObject("Outlook.Application")
+        Set OutMail = OutApp.CreateItem(0)
+
+    On Error Resume Next
+    
+        With OutMail
+            .display
+        End With
+  
+    
+    'body message
+    strBody = "<BODY style=font-size:11pt;font-family:Calibri;color:#1F497D><b>Dear All!</b><p>Please find<p>Kind regards</BODY>"
+        
+    'location of signature
+    'signature = Environ("appdata") & "\Microsoft\Signatures\" '<- BASIC LOCATION
+    
+    signature = "LOCHERE"
+    
+        If Dir(signature, vbDirectory) <> vbNullString Then
+            signature = signature & Dir$(signature & "report.htm")
+        Else:
+            signature = ""
+        End If
+
+    signature = CreateObject("Scripting.FileSystemObject").GetFile(signature).OpenAsTextStream(1, -2).ReadAll
+
+
+    With OutMail
+        .To = ""
+        .SentOnBehalfOfName = ""
+        .CC = ""
+        .BCC = Recipients
+        .Subject = ""
+        .HTMLbody = strBody & vbNewLine & signature
+            .Attachments.Add ""
+        ' You can add other files by uncommenting the following line.
+        '.Attachments.Add ("C:\test.txt")
+            '.Send <- sends the email automatically
+            .display '<- displays the email before sending = manual validation
+    End With
+    On Error GoTo 0
+
+    SendKeys "+{TAB}"
+    SendKeys "^k"
+
+
+    Set OutMail = Nothing
+    Set OutApp = Nothing
